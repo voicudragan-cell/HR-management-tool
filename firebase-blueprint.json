@@ -1,0 +1,180 @@
+{
+  "entities": {
+    "Employee": {
+      "title": "Employee",
+      "description": "Employee profile and employment details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "enum": ["admin", "manager", "employee"], "maxLength": 32 },
+        "department": { "type": "string", "maxLength": 64 },
+        "jobTitle": { "type": "string", "maxLength": 128 },
+        "level": { "type": "string", "maxLength": 32 },
+        "avatarUrl": { "type": "string", "maxLength": 512 },
+        "hireDate": { "type": "string", "maxLength": 32 },
+        "managerId": { "type": "string", "maxLength": 128 },
+        "status": { "type": "string", "enum": ["active", "onboarding", "probation", "offboarding"], "maxLength": 32 },
+        "leaveBalance": { "type": "object", "description": "Balance breakdown for annual, sick, and personal days" },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "name", "email", "role", "department", "jobTitle", "status"]
+    },
+    "OnboardingTask": {
+      "title": "OnboardingTask",
+      "description": "Onboarding task assigned to a new hire or manager",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "employeeId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 256 },
+        "category": { "type": "string", "enum": ["documentation", "it_setup", "compliance", "meet_team"], "maxLength": 64 },
+        "status": { "type": "string", "enum": ["pending", "in_progress", "completed"], "maxLength": 32 },
+        "dueDate": { "type": "string", "maxLength": 32 },
+        "completedAt": { "type": "string", "maxLength": 64 },
+        "assignedTo": { "type": "string", "maxLength": 128 }
+      },
+      "required": ["id", "employeeId", "title", "category", "status"]
+    },
+    "LeaveRequest": {
+      "title": "LeaveRequest",
+      "description": "Time off request submitted by an employee",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "employeeId": { "type": "string", "maxLength": 128 },
+        "employeeName": { "type": "string", "maxLength": 128 },
+        "department": { "type": "string", "maxLength": 64 },
+        "leaveType": { "type": "string", "enum": ["annual", "sick", "personal", "parental", "remote"], "maxLength": 32 },
+        "startDate": { "type": "string", "maxLength": 32 },
+        "endDate": { "type": "string", "maxLength": 32 },
+        "totalDays": { "type": "number" },
+        "reason": { "type": "string", "maxLength": 500 },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"], "maxLength": 32 },
+        "reviewedBy": { "type": "string", "maxLength": 128 },
+        "reviewedAt": { "type": "string", "maxLength": 64 },
+        "comments": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "employeeId", "employeeName", "leaveType", "startDate", "endDate", "totalDays", "status"]
+    },
+    "PerformanceReview": {
+      "title": "PerformanceReview",
+      "description": "Performance appraisal and OKR progress evaluation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "employeeId": { "type": "string", "maxLength": 128 },
+        "employeeName": { "type": "string", "maxLength": 128 },
+        "department": { "type": "string", "maxLength": 64 },
+        "reviewerId": { "type": "string", "maxLength": 128 },
+        "reviewerName": { "type": "string", "maxLength": 128 },
+        "cycle": { "type": "string", "maxLength": 64 },
+        "overallRating": { "type": "number" },
+        "competencies": { "type": "object", "description": "Key competencies evaluation and breakdown" },
+        "strengths": { "type": "string", "maxLength": 1000 },
+        "growthAreas": { "type": "string", "maxLength": 1000 },
+        "goals": { "type": "string", "maxLength": 1000 },
+        "selfReview": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["draft", "self_submitted", "manager_reviewed", "finalized"], "maxLength": 32 },
+        "dueDate": { "type": "string", "maxLength": 32 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "employeeId", "employeeName", "cycle", "status", "dueDate"]
+    },
+    "PayrollRecord": {
+      "title": "PayrollRecord",
+      "description": "Payroll compensation record and disbursement slip",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "employeeId": { "type": "string", "maxLength": 128 },
+        "employeeName": { "type": "string", "maxLength": 128 },
+        "department": { "type": "string", "maxLength": 64 },
+        "period": { "type": "string", "maxLength": 64 },
+        "baseSalary": { "type": "number" },
+        "bonus": { "type": "number" },
+        "allowances": { "type": "number" },
+        "deductions": { "type": "number" },
+        "tax": { "type": "number" },
+        "netSalary": { "type": "number" },
+        "status": { "type": "string", "enum": ["draft", "pending_approval", "approved", "paid"], "maxLength": 32 },
+        "paidAt": { "type": "string", "maxLength": 64 },
+        "paymentMethod": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "employeeId", "employeeName", "period", "baseSalary", "netSalary", "status"]
+    },
+    "MobilityRecord": {
+      "title": "MobilityRecord",
+      "description": "Promotion nomination, internal mobility application, or career path change",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "employeeId": { "type": "string", "maxLength": 128 },
+        "employeeName": { "type": "string", "maxLength": 128 },
+        "currentTitle": { "type": "string", "maxLength": 128 },
+        "proposedTitle": { "type": "string", "maxLength": 128 },
+        "currentDepartment": { "type": "string", "maxLength": 64 },
+        "targetDepartment": { "type": "string", "maxLength": 64 },
+        "type": { "type": "string", "enum": ["promotion", "internal_transfer", "lateral_mobility"], "maxLength": 32 },
+        "salaryAdjustmentPercent": { "type": "number" },
+        "status": { "type": "string", "enum": ["nominated", "under_review", "approved", "rejected"], "maxLength": 32 },
+        "justification": { "type": "string", "maxLength": 1000 },
+        "managerNotes": { "type": "string", "maxLength": 1000 },
+        "approvedBy": { "type": "string", "maxLength": 128 },
+        "effectiveDate": { "type": "string", "maxLength": 32 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "employeeId", "employeeName", "currentTitle", "proposedTitle", "type", "status"]
+    },
+    "AppNotification": {
+      "title": "AppNotification",
+      "description": "Automated system notification for approvals and review deadlines",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "targetRole": { "type": "string", "enum": ["all", "admin", "manager", "employee"], "maxLength": 32 },
+        "targetUserId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 256 },
+        "message": { "type": "string", "maxLength": 500 },
+        "type": { "type": "string", "enum": ["approval", "deadline", "onboarding", "promotion", "payroll"], "maxLength": 32 },
+        "relatedTab": { "type": "string", "maxLength": 64 },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "title", "message", "type", "read"]
+    }
+  },
+  "firestore": {
+    "/employees/{employeeId}": {
+      "schema": "Employee",
+      "description": "Employee database profiles, roles, and employment data"
+    },
+    "/onboarding_tasks/{taskId}": {
+      "schema": "OnboardingTask",
+      "description": "Onboarding milestone and task checklist items"
+    },
+    "/leave_requests/{requestId}": {
+      "schema": "LeaveRequest",
+      "description": "Leave, vacation, and PTO applications with approval status"
+    },
+    "/performance_reviews/{reviewId}": {
+      "schema": "PerformanceReview",
+      "description": "Performance reviews, competency scores, and development goals"
+    },
+    "/payroll_records/{recordId}": {
+      "schema": "PayrollRecord",
+      "description": "Compensation ledgers, payslips, and payroll runs"
+    },
+    "/mobility_records/{mobilityId}": {
+      "schema": "MobilityRecord",
+      "description": "Promotion nominations and internal department transfers"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "AppNotification",
+      "description": "Automated alerts for pending approvals, deadlines, and milestones"
+    }
+  }
+}

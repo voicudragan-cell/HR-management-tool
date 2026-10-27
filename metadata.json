@@ -1,0 +1,6 @@
+{
+  "name": "NexusHR - Enterprise Human Resources Management",
+  "description": "Comprehensive Human Resources management platform featuring onboarding workflows, performance appraisals, payroll analytics, leave tracking, career progression and mobility, role-based access control, and automated notifications.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && (request.auth.token.email_verified == true || request.auth.provider_id == 'anonymous');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == "voicu.dragan@interqas.com" && request.auth.token.email_verified == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Employees Collection
+    match /employees/{employeeId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(employeeId);
+      allow update: if isSignedIn() && isValidId(employeeId);
+      allow delete: if isAdmin();
+    }
+
+    // Onboarding Tasks Collection
+    match /onboarding_tasks/{taskId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(taskId);
+      allow delete: if isAdmin();
+    }
+
+    // Leave Requests Collection
+    match /leave_requests/{requestId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(requestId);
+      allow delete: if isAdmin();
+    }
+
+    // Performance Reviews Collection
+    match /performance_reviews/{reviewId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(reviewId);
+      allow delete: if isAdmin();
+    }
+
+    // Payroll Records Collection
+    match /payroll_records/{recordId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(recordId);
+    }
+
+    // Mobility & Promotion Records Collection
+    match /mobility_records/{mobilityId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(mobilityId);
+      allow delete: if isAdmin();
+    }
+
+    // Automated Notifications Collection
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(notificationId);
+      allow delete: if isSignedIn();
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}
