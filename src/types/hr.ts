@@ -29,12 +29,37 @@ export interface Employee {
   hireDate: string;
   managerId?: string;
   managerName?: string;
+  directReportName?: string;
+  directReportId?: string;
   status: 'active' | 'onboarding' | 'probation' | 'offboarding';
-  salary: number; // annual USD
+  salary: number; // annual EUR (€)
   location: string;
   leaveBalance: LeaveBalance;
   phone?: string;
   updatedAt?: string;
+}
+
+export interface TaskDocument {
+  id: string;
+  title: string;
+  description?: string;
+  content: string; // Document text/clauses for employee to read
+  fileName?: string;
+  fileUrl?: string;
+  requiredComprehension: boolean;
+  comprehensionConfirmed?: boolean;
+  confirmedAt?: string;
+  confirmedBy?: string;
+}
+
+export interface OnboardingCategory {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string; // 'indigo' | 'purple' | 'emerald' | 'amber' | 'blue' | 'rose'
+  icon?: string;
+  attachedDocuments?: TaskDocument[];
+  createdAt?: string;
 }
 
 export interface OnboardingTask {
@@ -43,18 +68,25 @@ export interface OnboardingTask {
   employeeName: string;
   department: Department;
   title: string;
-  category: 'documentation' | 'it_setup' | 'compliance' | 'meet_team';
+  category: string; // dynamic category name
+  categoryId?: string;
   status: 'pending' | 'in_progress' | 'completed';
   dueDate: string;
   completedAt?: string;
-  assignedTo: string; // e.g. 'HR Operations', 'IT Helpdesk', 'Manager'
+  assignedTo: string; // e.g. 'People & HR', 'IT Helpdesk', 'Department Manager'
   notes?: string;
+  documents?: TaskDocument[];
+  requiresComprehension?: boolean;
+  comprehensionConfirmed?: boolean;
+  confirmedAt?: string;
+  confirmedBy?: string;
 }
 
 export interface LeaveRequest {
   id: string;
   employeeId: string;
   employeeName: string;
+  directReportName?: string;
   department: Department;
   leaveType: 'annual' | 'sick' | 'personal' | 'parental' | 'remote';
   startDate: string;
@@ -79,6 +111,7 @@ export interface PerformanceReview {
   id: string;
   employeeId: string;
   employeeName: string;
+  directReportName?: string;
   department: Department;
   jobTitle: string;
   reviewerId: string;
@@ -106,9 +139,10 @@ export interface PayrollRecord {
   id: string;
   employeeId: string;
   employeeName: string;
+  directReportName?: string;
   department: Department;
   period: string; // e.g. "March 2026"
-  baseSalary: number; // monthly
+  baseSalary: number; // monthly EUR (€)
   bonus: number;
   allowances: number;
   deductions: number;
@@ -123,6 +157,7 @@ export interface MobilityRecord {
   id: string;
   employeeId: string;
   employeeName: string;
+  directReportName?: string;
   currentTitle: string;
   proposedTitle: string;
   currentDepartment: Department;
@@ -137,16 +172,28 @@ export interface MobilityRecord {
   createdAt: string;
 }
 
+export interface CareerLevel {
+  id: string;
+  level: string; // 'L1', 'L2', 'L3', 'L4', 'L5'
+  title: string;
+  scope: string;
+  promotionCriteria: string;
+  salaryBand: string; // in Euros (€), e.g. "€45,000 - €60,000"
+  currency?: string;
+}
+
 export interface InternalJobOpening {
   id: string;
   title: string;
   department: Department;
   level: string;
   location: string;
-  type: 'Full-time' | 'Internal Transfer';
+  type: 'Full-time' | 'Internal Transfer' | 'Part-time' | 'Contract';
   openings: number;
+  salaryBand: string; // Target band in Euros (€), e.g. "€75,000 - €95,000"
   description: string;
   requirements: string[];
+  status?: 'open' | 'closed' | 'draft';
   postedDate: string;
 }
 

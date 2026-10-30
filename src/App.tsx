@@ -30,7 +30,7 @@ const AppContent: React.FC = () => {
     activeRole,
     isOnline,
     isLoading,
-    resetToDefaultData,
+    clearToBlankStart,
   } = useHR();
 
   if (isLoading) {
@@ -94,15 +94,15 @@ const AppContent: React.FC = () => {
 
             <button
               onClick={() => {
-                if (window.confirm('Reset sample database records to default state?')) {
-                  resetToDefaultData();
+                if (window.confirm('Clean Slate: Purge any old test items and reset to blank start with only current employees?')) {
+                  clearToBlankStart();
                 }
               }}
               className="inline-flex items-center space-x-1 text-slate-400 hover:text-slate-600 transition-colors"
-              title="Reset initial seed records"
+              title="Clean slate: only current employees, no open or old items"
             >
               <RotateCcw className="h-3 w-3" />
-              <span>Reset Data</span>
+              <span>Blank Start Reset</span>
             </button>
           </div>
         </div>

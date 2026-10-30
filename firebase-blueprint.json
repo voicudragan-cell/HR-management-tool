@@ -15,25 +15,47 @@
         "avatarUrl": { "type": "string", "maxLength": 512 },
         "hireDate": { "type": "string", "maxLength": 32 },
         "managerId": { "type": "string", "maxLength": 128 },
+        "directReportName": { "type": "string", "maxLength": 128 },
         "status": { "type": "string", "enum": ["active", "onboarding", "probation", "offboarding"], "maxLength": 32 },
         "leaveBalance": { "type": "object", "description": "Balance breakdown for annual, sick, and personal days" },
         "updatedAt": { "type": "string", "maxLength": 64 }
       },
       "required": ["id", "name", "email", "role", "department", "jobTitle", "status"]
     },
+    "OnboardingCategory": {
+      "title": "OnboardingCategory",
+      "description": "Customizable onboarding category with optional attached compliance/reading documents",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "description": { "type": "string", "maxLength": 500 },
+        "color": { "type": "string", "maxLength": 32 },
+        "icon": { "type": "string", "maxLength": 64 },
+        "attachedDocuments": { "type": "array", "description": "Documents requiring reading and comprehension confirmation" },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "name"]
+    },
     "OnboardingTask": {
       "title": "OnboardingTask",
-      "description": "Onboarding task assigned to a new hire or manager",
+      "description": "Onboarding task assigned to a new hire with document comprehension gating",
       "type": "object",
       "properties": {
         "id": { "type": "string", "maxLength": 128 },
         "employeeId": { "type": "string", "maxLength": 128 },
         "title": { "type": "string", "maxLength": 256 },
-        "category": { "type": "string", "enum": ["documentation", "it_setup", "compliance", "meet_team"], "maxLength": 64 },
+        "category": { "type": "string", "maxLength": 128 },
+        "categoryId": { "type": "string", "maxLength": 128 },
         "status": { "type": "string", "enum": ["pending", "in_progress", "completed"], "maxLength": 32 },
         "dueDate": { "type": "string", "maxLength": 32 },
         "completedAt": { "type": "string", "maxLength": 64 },
-        "assignedTo": { "type": "string", "maxLength": 128 }
+        "assignedTo": { "type": "string", "maxLength": 128 },
+        "documents": { "type": "array", "description": "Attached documents requiring comprehension confirmation" },
+        "requiresComprehension": { "type": "boolean" },
+        "comprehensionConfirmed": { "type": "boolean" },
+        "confirmedAt": { "type": "string", "maxLength": 64 },
+        "confirmedBy": { "type": "string", "maxLength": 128 }
       },
       "required": ["id", "employeeId", "title", "category", "status"]
     },
@@ -45,6 +67,7 @@
         "id": { "type": "string", "maxLength": 128 },
         "employeeId": { "type": "string", "maxLength": 128 },
         "employeeName": { "type": "string", "maxLength": 128 },
+        "directReportName": { "type": "string", "maxLength": 128 },
         "department": { "type": "string", "maxLength": 64 },
         "leaveType": { "type": "string", "enum": ["annual", "sick", "personal", "parental", "remote"], "maxLength": 32 },
         "startDate": { "type": "string", "maxLength": 32 },
@@ -67,6 +90,7 @@
         "id": { "type": "string", "maxLength": 128 },
         "employeeId": { "type": "string", "maxLength": 128 },
         "employeeName": { "type": "string", "maxLength": 128 },
+        "directReportName": { "type": "string", "maxLength": 128 },
         "department": { "type": "string", "maxLength": 64 },
         "reviewerId": { "type": "string", "maxLength": 128 },
         "reviewerName": { "type": "string", "maxLength": 128 },
@@ -92,6 +116,7 @@
         "id": { "type": "string", "maxLength": 128 },
         "employeeId": { "type": "string", "maxLength": 128 },
         "employeeName": { "type": "string", "maxLength": 128 },
+        "directReportName": { "type": "string", "maxLength": 128 },
         "department": { "type": "string", "maxLength": 64 },
         "period": { "type": "string", "maxLength": 64 },
         "baseSalary": { "type": "number" },
@@ -114,6 +139,7 @@
         "id": { "type": "string", "maxLength": 128 },
         "employeeId": { "type": "string", "maxLength": 128 },
         "employeeName": { "type": "string", "maxLength": 128 },
+        "directReportName": { "type": "string", "maxLength": 128 },
         "currentTitle": { "type": "string", "maxLength": 128 },
         "proposedTitle": { "type": "string", "maxLength": 128 },
         "currentDepartment": { "type": "string", "maxLength": 64 },
@@ -145,6 +171,41 @@
         "createdAt": { "type": "string", "maxLength": 64 }
       },
       "required": ["id", "title", "message", "type", "read"]
+    },
+    "JobOpening": {
+      "title": "JobOpening",
+      "description": "Internal job vacancy and career mobility opportunity",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 128 },
+        "department": { "type": "string", "maxLength": 64 },
+        "level": { "type": "string", "maxLength": 32 },
+        "location": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "maxLength": 64 },
+        "openings": { "type": "number" },
+        "salaryBand": { "type": "string", "maxLength": 128 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "requirements": { "type": "array" },
+        "status": { "type": "string", "maxLength": 32 },
+        "postedDate": { "type": "string", "maxLength": 32 }
+      },
+      "required": ["id", "title", "department", "salaryBand"]
+    },
+    "CareerLevel": {
+      "title": "CareerLevel",
+      "description": "Organizational career ladder framework level and target compensation band in Euros",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "level": { "type": "string", "maxLength": 32 },
+        "title": { "type": "string", "maxLength": 128 },
+        "scope": { "type": "string", "maxLength": 1000 },
+        "promotionCriteria": { "type": "string", "maxLength": 1000 },
+        "salaryBand": { "type": "string", "maxLength": 128 },
+        "currency": { "type": "string", "maxLength": 16 }
+      },
+      "required": ["id", "level", "title", "salaryBand"]
     }
   },
   "firestore": {
@@ -152,9 +213,13 @@
       "schema": "Employee",
       "description": "Employee database profiles, roles, and employment data"
     },
+    "/onboarding_categories/{categoryId}": {
+      "schema": "OnboardingCategory",
+      "description": "Dynamic onboarding categories with attached compliance documents"
+    },
     "/onboarding_tasks/{taskId}": {
       "schema": "OnboardingTask",
-      "description": "Onboarding milestone and task checklist items"
+      "description": "Onboarding milestone and task checklist items with comprehension tracking"
     },
     "/leave_requests/{requestId}": {
       "schema": "LeaveRequest",
@@ -171,6 +236,14 @@
     "/mobility_records/{mobilityId}": {
       "schema": "MobilityRecord",
       "description": "Promotion nominations and internal department transfers"
+    },
+    "/job_openings/{jobId}": {
+      "schema": "JobOpening",
+      "description": "Internal job openings with editable target bands in Euros"
+    },
+    "/career_levels/{levelId}": {
+      "schema": "CareerLevel",
+      "description": "Career ladder benchmark levels and editable target salary bands in Euros"
     },
     "/notifications/{notificationId}": {
       "schema": "AppNotification",

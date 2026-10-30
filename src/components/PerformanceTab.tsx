@@ -11,6 +11,7 @@ import {
   Target,
   Edit3,
   X,
+  UserCheck,
   FileCheck
 } from 'lucide-react';
 import { useHR } from '../context/HRContext';
@@ -71,6 +72,7 @@ export const PerformanceTab: React.FC = () => {
     await submitPerformanceReview({
       employeeId: emp.id,
       employeeName: emp.name,
+      directReportName: emp.directReportName || '',
       department: emp.department,
       jobTitle: emp.jobTitle,
       reviewerId: activeProfile.id,
@@ -228,6 +230,12 @@ export const PerformanceTab: React.FC = () => {
                       <p className="text-[11px] text-slate-500 mt-0.5 truncate">
                         {rev.jobTitle} &bull; {rev.department}
                       </p>
+                      {(rev.directReportName || employees.find(e => e.id === rev.employeeId)?.directReportName) && (
+                        <div className="mt-1.5 flex items-center space-x-1 text-[10px] text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 truncate">
+                          <UserCheck className="h-3 w-3 text-indigo-600 shrink-0" />
+                          <span className="truncate">Direct Report: <strong>{rev.directReportName || employees.find(e => e.id === rev.employeeId)?.directReportName}</strong></span>
+                        </div>
+                      )}
                       <div className="mt-2 flex items-center justify-between text-xs pt-1.5 border-t border-slate-100">
                         {renderStars(rev.overallRating)}
                         <span className="text-[10px] text-slate-400">By {rev.reviewerName}</span>
@@ -264,6 +272,10 @@ export const PerformanceTab: React.FC = () => {
                   <p className="text-[11px] text-slate-400 mt-0.5">
                     Reviewed by <strong className="text-slate-600">{selectedReview.reviewerName}</strong> &bull; Due: {selectedReview.dueDate}
                   </p>
+                  <div className="mt-2 inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 font-medium">
+                    <UserCheck className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                    <span>Direct Report Attached: <strong className="font-semibold text-indigo-950">{selectedReview.directReportName || employees.find(e => e.id === selectedReview.employeeId)?.directReportName || 'None designated in dossier'}</strong></span>
+                  </div>
                 </div>
 
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-100 text-center sm:text-right shrink-0">
@@ -465,6 +477,19 @@ export const PerformanceTab: React.FC = () => {
                       <option key={e.id} value={e.id}>{e.name} ({e.jobTitle})</option>
                     ))}
                   </select>
+
+                  {/* Auto-attached Direct Report indicator */}
+                  {(() => {
+                    const candidate = employees.find(e => e.id === newReviewForm.employeeId);
+                    return (
+                      <div className="mt-1.5 p-2 rounded-lg bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 flex items-center space-x-1.5">
+                        <UserCheck className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                        <span>
+                          Direct Report (Auto-attached): <strong>{candidate?.directReportName || 'None designated in dossier'}</strong>
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div>

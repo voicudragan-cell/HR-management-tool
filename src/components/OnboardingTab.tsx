@@ -11,26 +11,50 @@ import {
   Calendar,
   AlertCircle,
   Filter,
-  X
+  X,
+  Edit2,
+  FileText,
+  Lock,
+  Unlock,
+  FolderCog,
+  Paperclip,
+  Check,
+  AlertTriangle
 } from 'lucide-react';
 import { useHR } from '../context/HRContext';
-import { Department, OnboardingTask, UserRole } from '../types/hr';
+import { Department, OnboardingTask, TaskDocument, UserRole } from '../types/hr';
+import { EditEmployeeModal } from './EditEmployeeModal';
+import { CategoryManagerModal } from './CategoryManagerModal';
+import { DocumentComprehensionModal } from './DocumentComprehensionModal';
 
 export const OnboardingTab: React.FC = () => {
   const {
+    activeProfile,
     activeRole,
     employees,
+    onboardingCategories,
     onboardingTasks,
     addEmployee,
     addOnboardingTask,
+    updateOnboardingTask,
     updateOnboardingTaskStatus,
+    confirmTaskComprehension,
   } = useHR();
 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(
     employees.find(e => e.status === 'onboarding')?.id || employees[0]?.id || ''
   );
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  
+  // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditEmpOpen, setIsEditEmpOpen] = useState(false);
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+
+  // Document Comprehension Reader state
+  const [readingDoc, setReadingDoc] = useState<{ doc: TaskDocument; taskId: string } | null>(null);
+  const [comprehensionWarning, setComprehensionWarning] = useState<string | null>(null);
 
   // New employee form state
   const [formData, setFormData] = useState({
@@ -46,12 +70,21 @@ export const OnboardingTab: React.FC = () => {
     hireDate: new Date().toISOString().split('T')[0],
   });
 
+  // New Task form state
+  const [newTaskForm, setNewTaskForm] = useState({
+    title: '',
+    categoryId: onboardingCategories[0]?.id || '',
+    dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+    assignedTo: 'People & HR',
+    notes: '',
+  });
+
   const selectedEmployee = employees.find(e => e.id === selectedEmployeeId) || employees[0];
   const empTasks = onboardingTasks.filter(t => t.employeeId === selectedEmployee?.id);
 
   const filteredTasks = categoryFilter === 'all'
     ? empTasks
-    : empTasks.filter(t => t.category === categoryFilter);
+    : empTasks.filter(t => t.category === categoryFilter || t.categoryId === categoryFilter);
 
   const completedCount = empTasks.filter(t => t.status === 'completed').length;
   const progressPercent = empTasks.length > 0 ? Math.round((completedCount / empTasks.length) * 100) : 0;
@@ -78,16 +111,61 @@ export const OnboardingTab: React.FC = () => {
     setIsAddModalOpen(false);
   };
 
-  const getCategoryIcon = (category: OnboardingTask['category']) => {
-    switch (category) {
-      case 'documentation':
-        return <FileCheck className="h-4 w-4 text-blue-600" />;
-      case 'it_setup':
-        return <Laptop className="h-4 w-4 text-purple-600" />;
-      case 'compliance':
-        return <ShieldCheck className="h-4 w-4 text-emerald-600" />;
-      case 'meet_team':
-        return <Users2 className="h-4 w-4 text-amber-600" />;
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTaskForm.title.trim() || !selectedEmployee) return;
+
+    const targetCat = onboardingCategories.find(c => c.id === newTaskForm.categoryId) || onboardingCategories[0];
+
+    await addOnboardingTask({
+      employeeId: selectedEmployee.id,
+      employeeName: selectedEmployee.name,
+      department: selectedEmployee.department,
+      title: newTaskForm.title.trim(),
+      category: targetCat ? targetCat.name : 'General',
+      categoryId: targetCat ? targetCat.id : undefined,
+      status: 'pending',
+      dueDate: newTaskForm.dueDate,
+      assignedTo: newTaskForm.assignedTo,
+      notes: newTaskForm.notes.trim() || undefined,
+      documents: targetCat?.attachedDocuments ? [...targetCat.attachedDocuments] : [],
+      requiresComprehension: (targetCat?.attachedDocuments && targetCat.attachedDocuments.length > 0) || false,
+      comprehensionConfirmed: false,
+    });
+
+    setNewTaskForm({
+      title: '',
+      categoryId: onboardingCategories[0]?.id || '',
+      dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+      assignedTo: 'People & HR',
+      notes: '',
+    });
+    setIsAddTaskModalOpen(false);
+  };
+
+  const handleTaskStatusToggle = async (task: OnboardingTask) => {
+    if (task.status === 'completed') {
+      // Toggle back to pending
+      await updateOnboardingTaskStatus(task.id, 'pending');
+      return;
+    }
+
+    // Check if task has attached documents requiring comprehension confirmation
+    if (task.requiresComprehension && !task.comprehensionConfirmed) {
+      const pendingDoc = task.documents?.find(d => d.requiredComprehension && !d.comprehensionConfirmed);
+      if (pendingDoc) {
+        setComprehensionWarning(`Comprehension required: "${pendingDoc.title}" must be read and confirmed before completing this milestone.`);
+        setReadingDoc({ doc: pendingDoc, taskId: task.id });
+        return;
+      }
+    }
+
+    // Otherwise mark completed
+    try {
+      await updateOnboardingTaskStatus(task.id, 'completed');
+      setComprehensionWarning(null);
+    } catch (err: any) {
+      setComprehensionWarning(err.message || 'Cannot mark task completed.');
     }
   };
 
@@ -102,30 +180,65 @@ export const OnboardingTab: React.FC = () => {
             <span>New Hire Onboarding Hub</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Structured roadmap guiding new recruits through documentation, hardware provisioning, and team integration.
+            Dynamic customizable categories, required policy document reading with comprehension sign-offs, and progress tracking.
           </p>
         </div>
 
-        {(activeRole === 'admin' || activeRole === 'manager') && (
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {/* Manage Categories Button */}
           <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white shadow-xs transition-colors self-start sm:self-auto"
+            onClick={() => setIsCategoryManagerOpen(true)}
+            className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 border border-slate-300 transition-colors shadow-xs"
+            title="Add or edit onboarding categories and attached policy documents"
           >
-            <Plus className="h-4 w-4" />
-            <span>Onboard New Hire</span>
+            <FolderCog className="h-4 w-4 text-indigo-600" />
+            <span>Manage Categories & Documents</span>
           </button>
-        )}
+
+          {(activeRole === 'admin' || activeRole === 'manager') && (
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white shadow-xs transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Onboard New Hire</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Comprehension Alert Warning Banner */}
+      {comprehensionWarning && (
+        <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl flex items-center justify-between text-xs text-amber-900 animate-in fade-in">
+          <div className="flex items-center space-x-2.5">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+            <span>{comprehensionWarning}</span>
+          </div>
+          <button
+            onClick={() => setComprehensionWarning(null)}
+            className="text-amber-700 hover:text-amber-900 font-bold ml-2"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Main Content Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Left Column: New Hires List */}
+        {/* Left Column: Team Directory / Onboarding Members */}
         <div className="space-y-4">
           <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-              Team Members in Onboarding & Directory
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Staff Members ({employees.length})
+              </h2>
+              {employees.length === 1 && (
+                <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  Blank Start Active
+                </span>
+              )}
+            </div>
 
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
               {employees.map(emp => {
@@ -204,9 +317,15 @@ export const OnboardingTab: React.FC = () => {
                       <p className="text-xs text-slate-500 mt-0.5">
                         {selectedEmployee.jobTitle} &bull; {selectedEmployee.department}
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        Hire Date: {selectedEmployee.hireDate} &bull; Location: {selectedEmployee.location}
-                      </p>
+                      <div className="flex items-center space-x-2 mt-1.5">
+                        <button
+                          onClick={() => setIsEditEmpOpen(true)}
+                          className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors"
+                        >
+                          <Edit2 className="h-3 w-3" />
+                          <span>Edit Profile (Photo, Name, Function)</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -223,114 +342,214 @@ export const OnboardingTab: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Categories Filter Bar */}
+                {/* Dynamic Categories Filter Bar */}
                 <div className="flex flex-wrap items-center gap-1.5 mt-5 pt-4 border-t border-slate-100">
                   <span className="text-xs text-slate-400 font-medium mr-1 flex items-center">
                     <Filter className="h-3.5 w-3.5 mr-1" /> Category:
                   </span>
-                  {[
-                    { id: 'all', label: 'All Tasks' },
-                    { id: 'documentation', label: 'Documentation' },
-                    { id: 'it_setup', label: 'IT & Hardware' },
-                    { id: 'compliance', label: 'Compliance' },
-                    { id: 'meet_team', label: 'Team & Culture' },
-                  ].map(cat => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setCategoryFilter(cat.id)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                        categoryFilter === cat.id
-                          ? 'bg-indigo-600 text-white font-semibold'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
+                  
+                  <button
+                    onClick={() => setCategoryFilter('all')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                      categoryFilter === 'all'
+                        ? 'bg-slate-900 text-white font-semibold'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    All Categories ({empTasks.length})
+                  </button>
+
+                  {onboardingCategories.map(cat => {
+                    const count = empTasks.filter(t => t.category === cat.name || t.categoryId === cat.id).length;
+                    const isSelected = categoryFilter === cat.name || categoryFilter === cat.id;
+
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => setCategoryFilter(cat.name)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors flex items-center space-x-1.5 ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white font-semibold'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        <span className={`h-2 w-2 rounded-full ${
+                          cat.color === 'blue' ? 'bg-blue-400' :
+                          cat.color === 'purple' ? 'bg-purple-400' :
+                          cat.color === 'emerald' ? 'bg-emerald-400' :
+                          cat.color === 'amber' ? 'bg-amber-400' :
+                          cat.color === 'rose' ? 'bg-rose-400' : 'bg-indigo-400'
+                        }`} />
+                        <span>{cat.name}</span>
+                        <span className="text-[10px] opacity-75 font-mono">({count})</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Tasks Checklist */}
               <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Integration Checklist ({filteredTasks.length})
-                  </h3>
-                  <span className="text-xs text-slate-400">Click circle to toggle status</span>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Onboarding Milestones ({filteredTasks.length})
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Tasks with attached documents require employee comprehension confirmation before completion.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setIsAddTaskModalOpen(true)}
+                    className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Add Task</span>
+                  </button>
                 </div>
 
                 {filteredTasks.length === 0 ? (
-                  <div className="py-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                    <CheckCircle2 className="h-6 w-6 text-slate-300 mx-auto mb-1" />
-                    <p className="text-xs text-slate-500">No tasks in this category.</p>
+                  <div className="py-10 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                    <CheckCircle2 className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs font-semibold text-slate-700">No onboarding tasks in this category.</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Click "Add Task" to assign a milestone to {selectedEmployee.name}.</p>
+                    <button
+                      onClick={() => setIsAddTaskModalOpen(true)}
+                      className="mt-3 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-xs"
+                    >
+                      + Create First Task
+                    </button>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {filteredTasks.map(task => {
                       const isDone = task.status === 'completed';
-                      const isInProgress = task.status === 'in_progress';
+                      const hasDocuments = task.documents && task.documents.length > 0;
+                      const hasRequiredComprehension = task.requiresComprehension;
+                      const isComprehensionConfirmed = task.comprehensionConfirmed;
 
                       return (
                         <div
                           key={task.id}
-                          className={`flex items-start justify-between p-3.5 rounded-xl border transition-all ${
+                          className={`p-4 rounded-xl border transition-all ${
                             isDone
                               ? 'bg-slate-50/60 border-slate-200 opacity-90'
                               : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
                           }`}
                         >
-                          <div className="flex items-start space-x-3">
-                            <button
-                              onClick={() => {
-                                const nextStatus = isDone ? 'pending' : isInProgress ? 'completed' : 'completed';
-                                updateOnboardingTaskStatus(task.id, nextStatus);
-                              }}
-                              className={`mt-0.5 h-5 w-5 rounded-full flex items-center justify-center transition-all ${
-                                isDone
-                                  ? 'bg-emerald-600 text-white'
-                                  : isInProgress
-                                  ? 'border-2 border-amber-500 bg-amber-50 text-amber-600'
-                                  : 'border-2 border-slate-300 hover:border-indigo-600'
-                              }`}
-                              title={isDone ? 'Mark as incomplete' : 'Mark as completed'}
-                            >
-                              {isDone && <CheckCircle2 className="h-3.5 w-3.5" />}
-                              {isInProgress && <Clock className="h-3 w-3" />}
-                            </button>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start space-x-3">
+                              {/* Gated Completion Checkbox */}
+                              <button
+                                onClick={() => handleTaskStatusToggle(task)}
+                                className={`mt-0.5 h-6 w-6 rounded-full flex items-center justify-center transition-all shrink-0 ${
+                                  isDone
+                                    ? 'bg-emerald-600 text-white shadow-xs'
+                                    : hasRequiredComprehension && !isComprehensionConfirmed
+                                    ? 'border-2 border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100'
+                                    : 'border-2 border-slate-300 hover:border-indigo-600'
+                                }`}
+                                title={
+                                  isDone
+                                    ? 'Mark incomplete'
+                                    : hasRequiredComprehension && !isComprehensionConfirmed
+                                    ? 'Gated: Document comprehension confirmation required before completing'
+                                    : 'Mark completed'
+                                }
+                              >
+                                {isDone && <CheckCircle2 className="h-4 w-4" />}
+                                {!isDone && hasRequiredComprehension && !isComprehensionConfirmed && (
+                                  <Lock className="h-3 w-3" />
+                                )}
+                              </button>
 
-                            <div>
-                              <div className="flex items-center space-x-2">
-                                <span className={`text-xs font-semibold ${isDone ? 'line-through text-slate-400' : 'text-slate-900'}`}>
-                                  {task.title}
-                                </span>
+                              <div>
+                                <div className="flex items-center space-x-2">
+                                  <span className={`text-xs font-bold ${isDone ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                                    {task.title}
+                                  </span>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-2 mt-1.5 text-[11px] text-slate-500">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded font-semibold bg-slate-100 text-slate-700">
+                                    {task.category}
+                                  </span>
+                                  <span>Due: {task.dueDate}</span>
+                                  <span>&bull; Assigned to: {task.assignedTo}</span>
+                                </div>
+
+                                {task.notes && (
+                                  <p className="text-[11px] text-slate-500 mt-1 italic">
+                                    Note: {task.notes}
+                                  </p>
+                                )}
                               </div>
-                              <div className="flex flex-wrap items-center gap-2 mt-1.5 text-[11px] text-slate-500">
-                                <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
-                                  {getCategoryIcon(task.category)}
-                                  <span className="capitalize">{task.category.replace('_', ' ')}</span>
-                                </span>
-                                <span>Due: {task.dueDate}</span>
-                                <span>&bull; Assigned to: {task.assignedTo}</span>
-                              </div>
-                              {task.notes && (
-                                <p className="text-[11px] text-slate-500 mt-1 italic">
-                                  Note: {task.notes}
-                                </p>
-                              )}
+                            </div>
+
+                            <div className="shrink-0 text-right">
+                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase ${
+                                isDone
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}>
+                                {task.status.replace('_', ' ')}
+                              </span>
                             </div>
                           </div>
 
-                          <div className="shrink-0 ml-3">
-                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase ${
-                              isDone
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : isInProgress
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-slate-100 text-slate-600'
-                            }`}>
-                              {task.status.replace('_', ' ')}
-                            </span>
-                          </div>
+                          {/* Attached Documents & Comprehension Section */}
+                          {hasDocuments && (
+                            <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
+                              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center space-x-1">
+                                <Paperclip className="h-3 w-3" />
+                                <span>Attached Reading Documents & Policy Approvals</span>
+                              </span>
+
+                              <div className="space-y-1.5">
+                                {task.documents?.map(docItem => (
+                                  <div
+                                    key={docItem.id}
+                                    className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                                  >
+                                    <div className="flex items-center space-x-2 truncate">
+                                      <FileText className="h-4 w-4 text-indigo-600 shrink-0" />
+                                      <div className="truncate">
+                                        <span className="text-xs font-semibold text-slate-800 truncate block">
+                                          {docItem.title}
+                                        </span>
+                                        <span className="text-[10px] text-slate-400 block truncate">
+                                          {docItem.fileName || 'policy_document.pdf'}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center space-x-2 shrink-0">
+                                      {docItem.comprehensionConfirmed ? (
+                                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                                          <Check className="h-3 w-3" />
+                                          <span>Comprehension Signed</span>
+                                        </span>
+                                      ) : (
+                                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                                          <Lock className="h-3 w-3" />
+                                          <span>Confirmation Required</span>
+                                        </span>
+                                      )}
+
+                                      <button
+                                        onClick={() => setReadingDoc({ doc: docItem, taskId: task.id })}
+                                        className="px-2.5 py-1 rounded text-xs font-semibold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200 transition-colors shadow-xs"
+                                      >
+                                        {docItem.comprehensionConfirmed ? 'Review Document' : 'Open & Sign Document'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
                         </div>
                       );
                     })}
@@ -346,6 +565,136 @@ export const OnboardingTab: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Modal: Add New Task */}
+      {isAddTaskModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 rounded-lg bg-indigo-100 text-indigo-700">
+                  <Plus className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Add Onboarding Milestone</h3>
+                  <p className="text-xs text-slate-500">Assign to {selectedEmployee?.name}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAddTaskModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTask} className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                  Task Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Complete Security & Data Privacy Training"
+                  value={newTaskForm.title}
+                  onChange={(e) => setNewTaskForm({ ...newTaskForm, title: e.target.value })}
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              {/* Dynamic Category Selector */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    Onboarding Category (Selectable Dropdown)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddTaskModalOpen(false);
+                      setIsCategoryManagerOpen(true);
+                    }}
+                    className="text-[11px] text-indigo-600 hover:underline font-medium"
+                  >
+                    + Manage Categories
+                  </button>
+                </div>
+                <select
+                  value={newTaskForm.categoryId}
+                  onChange={(e) => setNewTaskForm({ ...newTaskForm, categoryId: e.target.value })}
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-900 bg-white"
+                >
+                  {onboardingCategories.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name} ({cat.attachedDocuments?.length || 0} document(s))
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Selected category documents will be automatically inherited and require comprehension sign-off.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={newTaskForm.dueDate}
+                    onChange={(e) => setNewTaskForm({ ...newTaskForm, dueDate: e.target.value })}
+                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                    Assigned To
+                  </label>
+                  <input
+                    type="text"
+                    value={newTaskForm.assignedTo}
+                    onChange={(e) => setNewTaskForm({ ...newTaskForm, assignedTo: e.target.value })}
+                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                  Notes / Instructions (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Additional context or links..."
+                  value={newTaskForm.notes}
+                  onChange={(e) => setNewTaskForm({ ...newTaskForm, notes: e.target.value })}
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end space-x-2 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsAddTaskModalOpen(false)}
+                  className="px-4 py-2 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs transition-colors"
+                >
+                  Create & Inherit Documents
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal: Onboard New Hire */}
       {isAddModalOpen && (
@@ -512,6 +861,29 @@ export const OnboardingTab: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Employee Modal */}
+      <EditEmployeeModal
+        employee={selectedEmployee}
+        isOpen={isEditEmpOpen}
+        onClose={() => setIsEditEmpOpen(false)}
+      />
+
+      {/* Category Manager Modal */}
+      <CategoryManagerModal
+        isOpen={isCategoryManagerOpen}
+        onClose={() => setIsCategoryManagerOpen(false)}
+      />
+
+      {/* Document Comprehension Reader Modal */}
+      <DocumentComprehensionModal
+        document={readingDoc?.doc || null}
+        taskId={readingDoc?.taskId}
+        isOpen={!!readingDoc}
+        onClose={() => setReadingDoc(null)}
+        onConfirmComprehension={confirmTaskComprehension}
+        employeeName={selectedEmployee?.name || activeProfile.name}
+      />
 
     </div>
   );

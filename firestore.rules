@@ -34,6 +34,13 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Onboarding Categories Collection
+    match /onboarding_categories/{categoryId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(categoryId);
+      allow delete: if isAdmin();
+    }
+
     // Onboarding Tasks Collection
     match /onboarding_tasks/{taskId} {
       allow read: if isSignedIn();
@@ -73,6 +80,18 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create, update: if isSignedIn() && isValidId(notificationId);
       allow delete: if isSignedIn();
+    }
+
+    // Job Openings Collection
+    match /job_openings/{jobId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(jobId);
+    }
+
+    // Career Levels Collection
+    match /career_levels/{levelId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(levelId);
     }
 
     // Admins Collection

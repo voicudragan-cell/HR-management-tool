@@ -9,6 +9,7 @@ import {
   HeartPulse,
   Sun,
   User,
+  UserCheck,
   Check,
   X,
   MessageSquare,
@@ -62,6 +63,7 @@ export const LeaveTab: React.FC = () => {
     await submitLeaveRequest({
       employeeId: activeProfile.id,
       employeeName: activeProfile.name,
+      directReportName: activeProfile.directReportName || '',
       department: activeProfile.department,
       leaveType: formData.leaveType,
       startDate: formData.startDate,
@@ -254,8 +256,14 @@ export const LeaveTab: React.FC = () => {
 
                     return (
                       <tr key={req.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-slate-900">
-                          {req.employeeName}
+                        <td className="px-4 py-3">
+                          <span className="font-semibold text-slate-900 block">{req.employeeName}</span>
+                          {(req.directReportName || employees.find(e => e.id === req.employeeId)?.directReportName) && (
+                            <span className="inline-flex items-center space-x-1 text-[10px] text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 mt-0.5">
+                              <UserCheck className="h-3 w-3 text-indigo-600" />
+                              <span>Report: <strong>{req.directReportName || employees.find(e => e.id === req.employeeId)?.directReportName}</strong></span>
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-slate-600">
                           {req.department}
@@ -434,6 +442,14 @@ export const LeaveTab: React.FC = () => {
               <div className="p-3 bg-slate-50 rounded-lg flex items-center justify-between text-xs text-slate-600">
                 <span>Requested Duration:</span>
                 <span className="font-mono font-bold text-indigo-600">{formData.totalDays} business day(s)</span>
+              </div>
+
+              {/* Auto-attached Direct Report indicator */}
+              <div className="p-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 flex items-center space-x-2">
+                <UserCheck className="h-4 w-4 text-indigo-600 shrink-0" />
+                <span>
+                  Direct Report for Coverage & Notification (Auto-attached): <strong>{activeProfile.directReportName || 'None designated in dossier'}</strong>
+                </span>
               </div>
 
               <div>

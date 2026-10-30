@@ -1,5 +1,17 @@
-import { Employee, OnboardingTask, LeaveRequest, PerformanceReview, PayrollRecord, MobilityRecord, InternalJobOpening, AppNotification } from '../types/hr';
+import {
+  Employee,
+  OnboardingTask,
+  OnboardingCategory,
+  LeaveRequest,
+  PerformanceReview,
+  PayrollRecord,
+  MobilityRecord,
+  CareerLevel,
+  InternalJobOpening,
+  AppNotification
+} from '../types/hr';
 
+// Clean slate: Only current real employee/admin (Voicu Dragan), no old or example employees
 export const INITIAL_EMPLOYEES: Employee[] = [
   {
     id: 'emp-voicu',
@@ -10,621 +22,228 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     jobTitle: 'Chief People Officer & HR Director',
     level: 'L5 - Director',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
-    hireDate: '2022-01-15',
+    hireDate: '2024-01-15',
     status: 'active',
     salary: 165000,
     location: 'San Francisco, CA (HQ)',
     phone: '+1 (415) 555-0192',
     leaveBalance: {
       annual: 25,
-      annualUsed: 4,
-      sick: 12,
-      sickUsed: 1,
-      personal: 5,
-      personalUsed: 0,
-      remoteUsed: 18,
-    },
-  },
-  {
-    id: 'emp-sarah',
-    name: 'Sarah Chen',
-    email: 'sarah.chen@nexushr.corp',
-    role: 'manager',
-    department: 'Engineering',
-    jobTitle: 'VP of Engineering',
-    level: 'L5 - Director',
-    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80',
-    hireDate: '2022-06-10',
-    managerId: 'emp-voicu',
-    managerName: 'Voicu Dragan',
-    status: 'active',
-    salary: 185000,
-    location: 'Seattle, WA',
-    phone: '+1 (206) 555-0144',
-    leaveBalance: {
-      annual: 22,
-      annualUsed: 6,
-      sick: 10,
-      sickUsed: 2,
-      personal: 5,
-      personalUsed: 1,
-      remoteUsed: 24,
-    },
-  },
-  {
-    id: 'emp-marcus',
-    name: 'Marcus Vance',
-    email: 'marcus.vance@nexushr.corp',
-    role: 'manager',
-    department: 'Sales & Marketing',
-    jobTitle: 'Head of Enterprise Sales',
-    level: 'L4 - Staff/Lead',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
-    hireDate: '2023-03-01',
-    managerId: 'emp-voicu',
-    managerName: 'Voicu Dragan',
-    status: 'active',
-    salary: 155000,
-    location: 'New York, NY',
-    phone: '+1 (212) 555-0188',
-    leaveBalance: {
-      annual: 20,
-      annualUsed: 5,
-      sick: 10,
-      sickUsed: 0,
-      personal: 5,
-      personalUsed: 2,
-      remoteUsed: 12,
-    },
-  },
-  {
-    id: 'emp-elena',
-    name: 'Elena Rostova',
-    email: 'elena.rostova@nexushr.corp',
-    role: 'employee',
-    department: 'Engineering',
-    jobTitle: 'Senior Frontend Architect',
-    level: 'L3 - Senior',
-    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=256&q=80',
-    hireDate: '2023-09-15',
-    managerId: 'emp-sarah',
-    managerName: 'Sarah Chen',
-    status: 'active',
-    salary: 142000,
-    location: 'Austin, TX',
-    phone: '+1 (512) 555-0167',
-    leaveBalance: {
-      annual: 20,
-      annualUsed: 8,
-      sick: 10,
-      sickUsed: 1,
-      personal: 5,
-      personalUsed: 1,
-      remoteUsed: 35,
-    },
-  },
-  {
-    id: 'emp-liam',
-    name: 'Liam Walker',
-    email: 'liam.walker@nexushr.corp',
-    role: 'employee',
-    department: 'Engineering',
-    jobTitle: 'Cloud Infrastructure Associate',
-    level: 'L1 - Associate',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80',
-    hireDate: '2026-02-15',
-    managerId: 'emp-sarah',
-    managerName: 'Sarah Chen',
-    status: 'onboarding',
-    salary: 88000,
-    location: 'San Francisco, CA',
-    phone: '+1 (415) 555-0112',
-    leaveBalance: {
-      annual: 18,
       annualUsed: 0,
-      sick: 10,
-      sickUsed: 0,
-      personal: 3,
-      personalUsed: 0,
-      remoteUsed: 8,
-    },
-  },
-  {
-    id: 'emp-maya',
-    name: 'Maya Patel',
-    email: 'maya.patel@nexushr.corp',
-    role: 'employee',
-    department: 'Product & Design',
-    jobTitle: 'Lead Product Designer',
-    level: 'L4 - Staff/Lead',
-    avatarUrl: 'https://images.unsplash.com/photo-1534751516642-a171ed28a0e5?auto=format&fit=crop&w=256&q=80',
-    hireDate: '2023-11-01',
-    managerId: 'emp-voicu',
-    managerName: 'Voicu Dragan',
-    status: 'active',
-    salary: 148000,
-    location: 'Chicago, IL',
-    phone: '+1 (312) 555-0176',
-    leaveBalance: {
-      annual: 20,
-      annualUsed: 7,
-      sick: 10,
-      sickUsed: 3,
-      personal: 5,
-      personalUsed: 0,
-      remoteUsed: 20,
-    },
-  },
-  {
-    id: 'emp-david',
-    name: 'David Kim',
-    email: 'david.kim@nexushr.corp',
-    role: 'manager',
-    department: 'Finance & Operations',
-    jobTitle: 'Financial Controller',
-    level: 'L4 - Staff/Lead',
-    avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=256&q=80',
-    hireDate: '2023-04-12',
-    managerId: 'emp-voicu',
-    managerName: 'Voicu Dragan',
-    status: 'active',
-    salary: 152000,
-    location: 'Boston, MA',
-    phone: '+1 (617) 555-0133',
-    leaveBalance: {
-      annual: 22,
-      annualUsed: 4,
-      sick: 10,
+      sick: 12,
       sickUsed: 0,
       personal: 5,
-      personalUsed: 1,
-      remoteUsed: 15,
+      personalUsed: 0,
+      remoteUsed: 0,
     },
   },
 ];
 
-export const INITIAL_ONBOARDING_TASKS: OnboardingTask[] = [
+// Dynamic Onboarding Categories with attached policy & agreement documents
+export const INITIAL_ONBOARDING_CATEGORIES: OnboardingCategory[] = [
   {
-    id: 'task-1',
-    employeeId: 'emp-liam',
-    employeeName: 'Liam Walker',
-    department: 'Engineering',
-    title: 'Submit Tax W-4, I-9 & Direct Deposit verification',
-    category: 'documentation',
-    status: 'completed',
-    dueDate: '2026-03-01',
-    completedAt: '2026-02-28',
-    assignedTo: 'People & HR',
-    notes: 'Verified by HR Operations',
-  },
-  {
-    id: 'task-2',
-    employeeId: 'emp-liam',
-    employeeName: 'Liam Walker',
-    department: 'Engineering',
-    title: 'Provision MacBook Pro M3 & YubiKey 2FA Tokens',
-    category: 'it_setup',
-    status: 'completed',
-    dueDate: '2026-03-02',
-    completedAt: '2026-03-01',
-    assignedTo: 'IT Helpdesk',
-    notes: 'Hardware delivered to SF Office',
-  },
-  {
-    id: 'task-3',
-    employeeId: 'emp-liam',
-    employeeName: 'Liam Walker',
-    department: 'Engineering',
-    title: 'Complete SOC2 & GDPR Security Compliance Modules',
-    category: 'compliance',
-    status: 'in_progress',
-    dueDate: '2026-03-10',
-    assignedTo: 'Compliance Officer',
-    notes: 'Module 3 of 4 remaining',
-  },
-  {
-    id: 'task-4',
-    employeeId: 'emp-liam',
-    employeeName: 'Liam Walker',
-    department: 'Engineering',
-    title: 'Set up Kubernetes & GCP dev clusters with Onboarding Buddy',
-    category: 'meet_team',
-    status: 'pending',
-    dueDate: '2026-03-14',
-    assignedTo: 'Sarah Chen',
-    notes: 'Buddy paired: Elena Rostova',
-  },
-  {
-    id: 'task-5',
-    employeeId: 'emp-liam',
-    employeeName: 'Liam Walker',
-    department: 'Engineering',
-    title: '30-Day Check-in with Department Head',
-    category: 'meet_team',
-    status: 'pending',
-    dueDate: '2026-03-25',
-    assignedTo: 'Sarah Chen',
-  },
-];
+    id: 'cat-doc',
+    name: 'Documentation & Agreements',
+    description: 'Employment contracts, tax compliance forms, and confidentiality agreements.',
+    color: 'blue',
+    icon: 'FileCheck',
+    createdAt: '2026-01-01',
+    attachedDocuments: [
+      {
+        id: 'doc-nda-01',
+        title: 'NexusHR Proprietary Information & Confidentiality Agreement',
+        fileName: 'Confidentiality_Agreement_v2.pdf',
+        description: 'Mandatory non-disclosure agreement governing company proprietary assets and client data.',
+        requiredComprehension: true,
+        content: `NEXUSHR ENTERPRISE CONFIDENTIALITY & PROPRIETARY INFORMATION AGREEMENT
 
-export const INITIAL_LEAVE_REQUESTS: LeaveRequest[] = [
-  {
-    id: 'leave-1',
-    employeeId: 'emp-elena',
-    employeeName: 'Elena Rostova',
-    department: 'Engineering',
-    leaveType: 'annual',
-    startDate: '2026-04-10',
-    endDate: '2026-04-17',
-    totalDays: 6,
-    reason: 'Spring family vacation and rest period',
-    status: 'pending',
-    createdAt: '2026-03-02',
-  },
-  {
-    id: 'leave-2',
-    employeeId: 'emp-marcus',
-    employeeName: 'Marcus Vance',
-    department: 'Sales & Marketing',
-    leaveType: 'personal',
-    startDate: '2026-03-20',
-    endDate: '2026-03-22',
-    totalDays: 2,
-    reason: 'Personal family relocation commitments',
-    status: 'approved',
-    reviewedBy: 'emp-voicu',
-    reviewedByName: 'Voicu Dragan',
-    reviewedAt: '2026-03-01',
-    comments: 'Approved. Enjoy your time off!',
-    createdAt: '2026-02-27',
-  },
-  {
-    id: 'leave-3',
-    employeeId: 'emp-maya',
-    employeeName: 'Maya Patel',
-    department: 'Product & Design',
-    leaveType: 'remote',
-    startDate: '2026-03-15',
-    endDate: '2026-03-18',
-    totalDays: 4,
-    reason: 'Working remotely from Montreal design symposium',
-    status: 'approved',
-    reviewedBy: 'emp-voicu',
-    reviewedByName: 'Voicu Dragan',
-    reviewedAt: '2026-02-25',
-    comments: 'Safe travels. Keep us posted on the workshop takeaways.',
-    createdAt: '2026-02-24',
-  },
-  {
-    id: 'leave-4',
-    employeeId: 'emp-liam',
-    employeeName: 'Liam Walker',
-    department: 'Engineering',
-    leaveType: 'sick',
-    startDate: '2026-02-20',
-    endDate: '2026-02-21',
-    totalDays: 1,
-    reason: 'Dental emergency procedure',
-    status: 'approved',
-    reviewedBy: 'emp-sarah',
-    reviewedByName: 'Sarah Chen',
-    reviewedAt: '2026-02-20',
-    createdAt: '2026-02-20',
-  },
-];
+1. PURPOSE & SCOPE
+As an employee of NexusHR, you will have access to confidential, proprietary, and trade secret information relating to company operations, technical codebases, employee personal data, and business strategies. This agreement protects all such proprietary assets.
 
-export const INITIAL_PERFORMANCE_REVIEWS: PerformanceReview[] = [
-  {
-    id: 'rev-elena-q1',
-    employeeId: 'emp-elena',
-    employeeName: 'Elena Rostova',
-    department: 'Engineering',
-    jobTitle: 'Senior Frontend Architect',
-    reviewerId: 'emp-sarah',
-    reviewerName: 'Sarah Chen',
-    cycle: 'Q1 2026 Quarterly Performance Cycle',
-    overallRating: 4.8,
-    competencies: {
-      jobKnowledge: 5,
-      communication: 4,
-      collaboration: 5,
-      problemSolving: 5,
-      leadership: 5,
-    },
-    strengths: 'Outstanding technical architecture on the micro-frontend design system. Mentored two junior engineers and championed web performance optimizations that decreased LCP by 42%.',
-    growthAreas: 'Can delegate more low-level code review responsibilities to intermediate teammates to free up bandwidth for long-term technical roadmap planning.',
-    goals: 'Deliver new design system token architecture and lead cross-department accessibility audit.',
-    selfReview: 'Exceeded deliverables for Q1 core dashboard revamp and established comprehensive unit testing standards for the squad.',
-    status: 'manager_reviewed',
-    dueDate: '2026-03-28',
-    createdAt: '2026-02-15',
-    updatedAt: '2026-03-01',
-  },
-  {
-    id: 'rev-marcus-q1',
-    employeeId: 'emp-marcus',
-    employeeName: 'Marcus Vance',
-    department: 'Sales & Marketing',
-    jobTitle: 'Head of Enterprise Sales',
-    reviewerId: 'emp-voicu',
-    reviewerName: 'Voicu Dragan',
-    cycle: 'Q1 2026 Quarterly Performance Cycle',
-    overallRating: 4.5,
-    competencies: {
-      jobKnowledge: 5,
-      communication: 5,
-      collaboration: 4,
-      problemSolving: 4,
-      leadership: 5,
-    },
-    strengths: 'Closed $1.8M in net new ARR, beating target by 18%. Revamped sales training playbook for new hires.',
-    growthAreas: 'Improve cross-functional alignment with Product to streamline custom RFP security questionnaires.',
-    goals: 'Expand EMEA expansion pipeline and onboard 3 enterprise account executives.',
-    selfReview: 'Strong quarter despite macro headwinds. High win rates against legacy competitors.',
-    status: 'manager_reviewed',
-    dueDate: '2026-03-28',
-    createdAt: '2026-02-15',
-    updatedAt: '2026-03-02',
-  },
-  {
-    id: 'rev-liam-probation',
-    employeeId: 'emp-liam',
-    employeeName: 'Liam Walker',
-    department: 'Engineering',
-    jobTitle: 'Cloud Infrastructure Associate',
-    reviewerId: 'emp-sarah',
-    reviewerName: 'Sarah Chen',
-    cycle: '30-Day New Hire Progress Appraisal',
-    overallRating: 4.2,
-    competencies: {
-      jobKnowledge: 4,
-      communication: 4,
-      collaboration: 5,
-      problemSolving: 4,
-      leadership: 4,
-    },
-    strengths: 'Exceptional enthusiasm and rapid grasp of Terraform infrastructure automation. Great team player.',
-    growthAreas: 'Deepen monitoring and alerting runbook knowledge during production incident simulations.',
-    goals: 'Attain AWS/GCP Associate Cloud Architect Certification within first 90 days.',
-    selfReview: 'Enjoying the ramp up. Elena and Sarah have been very supportive onboarding guides.',
-    status: 'self_submitted',
-    dueDate: '2026-03-25',
-    createdAt: '2026-02-25',
-    updatedAt: '2026-02-28',
-  },
-];
+2. DEFINITION OF CONFIDENTIAL INFORMATION
+Confidential Information includes, without limitation:
+- All source code, product roadmaps, architectural diagrams, and algorithmic implementations.
+- Employee personally identifiable information (PII), compensation structures, and personnel records.
+- Financial metrics, customer lists, pricing proposals, and contract negotiations.
 
-export const INITIAL_PAYROLL_RECORDS: PayrollRecord[] = [
-  {
-    id: 'pay-2026-03-voicu',
-    employeeId: 'emp-voicu',
-    employeeName: 'Voicu Dragan',
-    department: 'People & HR',
-    period: 'March 2026',
-    baseSalary: 13750,
-    bonus: 1500,
-    allowances: 400,
-    deductions: 350,
-    tax: 3750,
-    netSalary: 11550,
-    status: 'approved',
-    paymentMethod: 'Direct Deposit (Chase ****4921)',
-  },
-  {
-    id: 'pay-2026-03-sarah',
-    employeeId: 'emp-sarah',
-    employeeName: 'Sarah Chen',
-    department: 'Engineering',
-    period: 'March 2026',
-    baseSalary: 15416,
-    bonus: 2000,
-    allowances: 500,
-    deductions: 420,
-    tax: 4280,
-    netSalary: 13216,
-    status: 'approved',
-    paymentMethod: 'Direct Deposit (Wells Fargo ****8190)',
-  },
-  {
-    id: 'pay-2026-03-marcus',
-    employeeId: 'emp-marcus',
-    employeeName: 'Marcus Vance',
-    department: 'Sales & Marketing',
-    period: 'March 2026',
-    baseSalary: 12916,
-    bonus: 3500, // sales commission
-    allowances: 350,
-    deductions: 380,
-    tax: 4100,
-    netSalary: 12286,
-    status: 'approved',
-    paymentMethod: 'Direct Deposit (Citibank ****3042)',
-  },
-  {
-    id: 'pay-2026-03-elena',
-    employeeId: 'emp-elena',
-    employeeName: 'Elena Rostova',
-    department: 'Engineering',
-    period: 'March 2026',
-    baseSalary: 11833,
-    bonus: 1000,
-    allowances: 350,
-    deductions: 290,
-    tax: 3120,
-    netSalary: 9773,
-    status: 'pending_approval',
-    paymentMethod: 'Direct Deposit (Bank of America ****7104)',
-  },
-  {
-    id: 'pay-2026-03-liam',
-    employeeId: 'emp-liam',
-    employeeName: 'Liam Walker',
-    department: 'Engineering',
-    period: 'March 2026',
-    baseSalary: 7333,
-    bonus: 500,
-    allowances: 250,
-    deductions: 180,
-    tax: 1890,
-    netSalary: 6013,
-    status: 'pending_approval',
-    paymentMethod: 'Direct Deposit (Chase ****1198)',
-  },
-  {
-    id: 'pay-2026-03-maya',
-    employeeId: 'emp-maya',
-    employeeName: 'Maya Patel',
-    department: 'Product & Design',
-    period: 'March 2026',
-    baseSalary: 12333,
-    bonus: 800,
-    allowances: 300,
-    deductions: 310,
-    tax: 3250,
-    netSalary: 9873,
-    status: 'pending_approval',
-    paymentMethod: 'Direct Deposit (Fidelity ****5512)',
-  },
-  {
-    id: 'pay-2026-03-david',
-    employeeId: 'emp-david',
-    employeeName: 'David Kim',
-    department: 'Finance & Operations',
-    period: 'March 2026',
-    baseSalary: 12666,
-    bonus: 1200,
-    allowances: 350,
-    deductions: 320,
-    tax: 3380,
-    netSalary: 10516,
-    status: 'approved',
-    paymentMethod: 'Direct Deposit (Silicon Valley Bank ****9901)',
-  },
-];
+3. OBLIGATIONS & NON-DISCLOSURE
+You agree to maintain the strictest confidentiality regarding all company assets during and after your employment. You shall not copy, disclose, or distribute any proprietary materials to unauthorized third parties without prior written consent from Executive Leadership.
 
-export const INITIAL_MOBILITY_RECORDS: MobilityRecord[] = [
-  {
-    id: 'mob-1',
-    employeeId: 'emp-elena',
-    employeeName: 'Elena Rostova',
-    currentTitle: 'Senior Frontend Architect',
-    proposedTitle: 'Staff Frontend Engineer & UI Practice Lead',
-    currentDepartment: 'Engineering',
-    targetDepartment: 'Engineering',
-    type: 'promotion',
-    salaryAdjustmentPercent: 14,
-    status: 'nominated',
-    justification: 'Elena has served as the de-facto technical lead across 3 cross-functional product squads, driving our unified design system adoption to 100%. Her technical leadership is universally recognized.',
-    managerNotes: 'Strongly recommended by Sarah Chen. Readiness assessment evaluated as immediate.',
-    effectiveDate: '2026-04-01',
-    createdAt: '2026-02-26',
-  },
-  {
-    id: 'mob-2',
-    employeeId: 'emp-marcus',
-    employeeName: 'Marcus Vance',
-    currentTitle: 'Head of Enterprise Sales',
-    proposedTitle: 'VP of Global Commercial Operations',
-    currentDepartment: 'Sales & Marketing',
-    targetDepartment: 'Sales & Marketing',
-    type: 'promotion',
-    salaryAdjustmentPercent: 16,
-    status: 'approved',
-    justification: 'Successfully built enterprise pipeline from zero to $8.2M ARR over two consecutive years.',
-    approvedBy: 'Voicu Dragan',
-    effectiveDate: '2026-03-01',
-    createdAt: '2026-02-10',
-  },
-];
+4. RETURN OF ASSETS
+Upon conclusion of employment, all corporate computing equipment, credentials, cryptographic keys, and internal documents must be returned immediately to IT Helpdesk.
 
-export const INITIAL_JOB_OPENINGS: InternalJobOpening[] = [
-  {
-    id: 'job-1',
-    title: 'Staff Frontend Engineer & UI Practice Lead',
-    department: 'Engineering',
-    level: 'L4 - Staff/Lead',
-    location: 'Remote or SF / Austin',
-    type: 'Internal Transfer',
-    openings: 1,
-    description: 'Drive frontend architectural strategy, web performance, component design tokens, and engineering mentorship.',
-    requirements: [
-      '5+ years leading high-scale modern TypeScript/React SPAs',
-      'Proven expertise in accessibility, bundle optimization, and state architectures',
-      'Demonstrated track record of mentoring senior and staff engineers',
+By checking "I confirm comprehension" below, you acknowledge having thoroughly read, understood, and agreed to be legally bound by this agreement.`,
+      },
+      {
+        id: 'doc-deposit-02',
+        title: 'Payroll Direct Deposit & Tax Withholding Declaration',
+        fileName: 'Direct_Deposit_Authorization.pdf',
+        description: 'Instructions and verification protocol for automated bank wage disbursement.',
+        requiredComprehension: true,
+        content: `DIRECT DEPOSIT WAGE AUTHORIZATION PROTOCOL
+
+1. DIRECT DEPOSIT ENROLLMENT
+All staff salaries and discretionary bonuses are disbursed electronically on the final business day of each calendar month. 
+
+2. VERIFICATION REQUIREMENTS
+Employees must verify:
+- Routing Transit Number (ABA 9-digit code)
+- Account Number & Bank Name
+- Tax Withholding Allowances (IRS W-4 standard)
+
+3. SECURITY NOTICE
+NexusHR will never request password verification for your personal financial institutions. All bank data in Firestore is secured with Attribute-Based Access Control (ABAC).`,
+      },
     ],
-    postedDate: '2026-02-20',
   },
   {
-    id: 'job-2',
-    title: 'Principal Cloud Platform & Site Reliability Engineer',
-    department: 'Engineering',
-    level: 'L4 - Staff/Lead',
-    location: 'Remote / Seattle',
-    type: 'Full-time',
-    openings: 2,
-    description: 'Scale multi-region Kubernetes deployments, automated CI/CD pipelines, and zero-trust security postures.',
-    requirements: [
-      'Deep mastery of GCP/AWS, Terraform, Helm, and Istio service mesh',
-      'Experience managing 99.99% SLA microservices architectures',
+    id: 'cat-it',
+    name: 'IT & Hardware Setup',
+    description: 'Workstation provisioning, multi-factor authentication, and developer credential keys.',
+    color: 'purple',
+    icon: 'Laptop',
+    createdAt: '2026-01-01',
+    attachedDocuments: [
+      {
+        id: 'doc-it-sec',
+        title: 'IT Hardware & Acceptable Computing Use Policy',
+        fileName: 'IT_Hardware_Policy_2026.pdf',
+        description: 'Protocols for corporate laptops, YubiKey multi-factor tokens, and VPN tunnels.',
+        requiredComprehension: true,
+        content: `IT INFRASTRUCTURE & HARDWARE SECURITY PROTOCOLS
+
+1. HARDWARE PROVISIONING
+All staff are equipped with encrypted workstations (FileVault/BitLocker enforced) and hardware 2FA keys.
+
+2. SECURITY REQUIREMENTS
+- Password complexity: Minimum 16 characters or passkey credentials.
+- Automatic screen lock after 5 minutes of inactivity.
+- Public Wi-Fi access requires active WireGuard / Corporate VPN tunneling.
+- Storing unencrypted client data on local drives is strictly prohibited.
+
+3. LOST OR COMPROMISED DEVICES
+Any misplaced or compromised corporate device must be reported immediately to security@nexushr.corp within 2 hours for remote wipe initiation.`,
+      },
     ],
-    postedDate: '2026-02-22',
   },
   {
-    id: 'job-3',
-    title: 'Senior Product Manager - Enterprise Workplace Integrations',
-    department: 'Product & Design',
-    level: 'L3 - Senior',
-    location: 'San Francisco, CA / Hybrid',
-    type: 'Full-time',
-    openings: 1,
-    description: 'Lead strategy for enterprise API connectors, HRIS integrations, and automated compliance auditing.',
-    requirements: [
-      '3+ years B2B SaaS product management experience',
-      'Strong technical grounding in RESTful APIs and OAuth2 enterprise workflows',
+    id: 'cat-comp',
+    name: 'Compliance & SOC2 Security',
+    description: 'SOC2 Type II protocols, GDPR data rights, and annual ethics training.',
+    color: 'emerald',
+    icon: 'ShieldCheck',
+    createdAt: '2026-01-01',
+    attachedDocuments: [
+      {
+        id: 'doc-soc2-gdpr',
+        title: 'SOC2 Type II & GDPR Data Privacy Standard Operating Procedures',
+        fileName: 'SOC2_GDPR_Compliance_Manual.pdf',
+        description: 'Mandatory guidelines for handling personal data and maintaining SOC2 certification.',
+        requiredComprehension: true,
+        content: `SOC2 TYPE II & DATA PRIVACY COMPLIANCE CODE
+
+1. PRINCIPLE OF LEAST PRIVILEGE
+Access to production databases, cloud environments, and sensitive HR records is strictly restricted based on verified business necessity.
+
+2. PRIVACY REGULATIONS (GDPR & CCPA)
+NexusHR processes personal data strictly in accordance with global data protection laws:
+- Right of Access: Data subjects may request copies of their stored information.
+- Right of Erasure: Automated deletion workflows must be respected.
+- Breach Notification: Any unauthorized data exposure triggers mandatory 72-hour reporting.
+
+3. ANNUAL RECERTIFICATION
+All team members must complete annual refresher modules in anti-phishing defense and secure coding practices.`,
+      },
     ],
-    postedDate: '2026-02-25',
+  },
+  {
+    id: 'cat-team',
+    name: 'Team Orientation & Culture',
+    description: 'Buddy introductions, executive 1:1 sessions, and company handbook.',
+    color: 'amber',
+    icon: 'Users2',
+    createdAt: '2026-01-01',
+    attachedDocuments: [
+      {
+        id: 'doc-handbook',
+        title: 'NexusHR Team Culture & Employee Playbook',
+        fileName: 'NexusHR_Employee_Handbook_2026.pdf',
+        description: 'Core values, flexible remote work policies, and professional development support.',
+        requiredComprehension: true,
+        content: `WELCOME TO NEXUSHR — THE TEAM PLAYBOOK
+
+1. OUR CORE VALUES
+- Transparency First: Default to open communication across squads and departments.
+- Ownership & Velocity: Empowering every contributor to make high-impact decisions.
+- Psychological Safety: Fostering curiosity, constructive feedback, and continuous learning.
+
+2. TIME-OFF & RECHARGE
+We believe sustainable high performance requires rest. Our generous leave policies include:
+- Annual Vacation: 20–25 days depending on tenure.
+- Unlimited Sick & Medical recovery time.
+- Flexible Remote Work from any authorized jurisdiction.
+
+3. PROFESSIONAL GROWTH
+Every team member has an annual €2,500 learning stipend for conferences, books, and technical certifications.`,
+      },
+    ],
   },
 ];
 
-export const INITIAL_NOTIFICATIONS: AppNotification[] = [
+export const INITIAL_CAREER_LEVELS: CareerLevel[] = [
   {
-    id: 'notif-1',
-    targetRole: 'manager',
-    title: 'Pending Leave Request Approval',
-    message: 'Elena Rostova submitted a 6-day Annual Leave request (Apr 10 - Apr 17).',
-    type: 'approval',
-    relatedTab: 'leave',
-    read: false,
-    createdAt: '2026-03-02 08:30',
+    id: 'lvl-l1',
+    level: 'L1',
+    title: 'Associate / Entry',
+    scope: 'Individual contributor executing defined deliverables under mentorship with high attention to quality standards.',
+    promotionCriteria: 'Consistent delivery, adherence to team standards, and solid domain basics.',
+    salaryBand: '€45,000 - €60,000',
+    currency: 'EUR',
   },
   {
-    id: 'notif-2',
-    targetRole: 'all',
-    title: 'Q1 Performance Review Deadline Reminder',
-    message: 'Q1 Review cycle concludes in 26 days. Ensure all self-reviews and manager evaluations are finalized.',
-    type: 'deadline',
-    relatedTab: 'performance',
-    read: false,
-    createdAt: '2026-03-01 10:00',
+    id: 'lvl-l2',
+    level: 'L2',
+    title: 'Specialist / Intermediate',
+    scope: 'Autonomous execution of complex functional deliverables, independently scoping features and testing.',
+    promotionCriteria: 'Delivering end-to-end projects without continuous supervision, participating in peer reviews.',
+    salaryBand: '€60,000 - €80,000',
+    currency: 'EUR',
   },
   {
-    id: 'notif-3',
-    targetRole: 'admin',
-    title: 'Promotion Nomination Awaiting Sign-off',
-    message: 'Sarah Chen nominated Elena Rostova for promotion to Staff Frontend Engineer (+14% comp adjust).',
-    type: 'promotion',
-    relatedTab: 'mobility',
-    read: false,
-    createdAt: '2026-02-26 14:15',
+    id: 'lvl-l3',
+    level: 'L3',
+    title: 'Senior Practitioner',
+    scope: 'Subject matter expert driving architecture, unblocking junior peers, and collaborating cross-squad.',
+    promotionCriteria: 'Cross-functional technical influence, proven mentorship of team members, flawless production quality.',
+    salaryBand: '€80,000 - €105,000',
+    currency: 'EUR',
   },
   {
-    id: 'notif-4',
-    targetRole: 'all',
-    title: 'New Hire Onboarding Milestone',
-    message: 'Liam Walker completed Tax W-4 & IT Hardware Provisioning milestones.',
-    type: 'onboarding',
-    relatedTab: 'onboarding',
-    read: true,
-    createdAt: '2026-03-01 16:40',
+    id: 'lvl-l4',
+    level: 'L4',
+    title: 'Staff / Practice Lead',
+    scope: 'Strategic organizational pillar leading design systems, high-scale infrastructure, or department revenue targets.',
+    promotionCriteria: 'Organizational-wide impact, executive alignment, driving standards adopted across entire organization.',
+    salaryBand: '€105,000 - €140,000',
+    currency: 'EUR',
+  },
+  {
+    id: 'lvl-l5',
+    level: 'L5',
+    title: 'Director / Executive',
+    scope: 'Strategic leadership, talent development, organizational budgets, and executive OKR accountability.',
+    promotionCriteria: 'Demonstrated business growth, organizational culture leadership, and executive consensus building.',
+    salaryBand: '€140,000 - €210,000+',
+    currency: 'EUR',
   },
 ];
+
+// Blank start: No open items, no old items
+export const INITIAL_ONBOARDING_TASKS: OnboardingTask[] = [];
+export const INITIAL_LEAVE_REQUESTS: LeaveRequest[] = [];
+export const INITIAL_PERFORMANCE_REVIEWS: PerformanceReview[] = [];
+export const INITIAL_PAYROLL_RECORDS: PayrollRecord[] = [];
+export const INITIAL_MOBILITY_RECORDS: MobilityRecord[] = [];
+export const INITIAL_JOB_OPENINGS: InternalJobOpening[] = [];
+export const INITIAL_NOTIFICATIONS: AppNotification[] = [];
+

@@ -11,6 +11,7 @@ import {
   Lock,
   X,
   Send,
+  UserCheck,
   AlertCircle
 } from 'lucide-react';
 import { useHR } from '../context/HRContext';
@@ -192,7 +193,13 @@ export const PayrollTab: React.FC = () => {
                     <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="px-4 py-3">
                         <span className="font-semibold text-slate-900 block">{item.employeeName}</span>
-                        <span className="text-[10px] text-slate-400 font-mono truncate max-w-[140px] block">
+                        {(item.directReportName || employees.find(e => e.id === item.employeeId)?.directReportName) && (
+                          <span className="inline-flex items-center space-x-1 text-[10px] text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 mt-0.5">
+                            <UserCheck className="h-3 w-3 text-indigo-600" />
+                            <span>Report: <strong>{item.directReportName || employees.find(e => e.id === item.employeeId)?.directReportName}</strong></span>
+                          </span>
+                        )}
+                        <span className="text-[10px] text-slate-400 font-mono truncate max-w-[140px] block mt-0.5">
                           {item.paymentMethod}
                         </span>
                       </td>
@@ -271,6 +278,10 @@ export const PayrollTab: React.FC = () => {
                   <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Employee</span>
                   <span className="text-sm font-bold text-slate-900">{selectedRecordForPayslip.employeeName}</span>
                   <span className="text-xs text-slate-500 block">{selectedRecordForPayslip.department}</span>
+                  <div className="mt-2 inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 font-medium">
+                    <UserCheck className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                    <span>Direct Report Attached: <strong className="font-semibold text-indigo-950">{selectedRecordForPayslip.directReportName || employees.find(e => e.id === selectedRecordForPayslip.employeeId)?.directReportName || 'None designated in dossier'}</strong></span>
+                  </div>
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Pay Period</span>
@@ -315,8 +326,12 @@ export const PayrollTab: React.FC = () => {
                 </div>
               </div>
 
-              <div className="text-[11px] text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-200">
-                Payment Channel: <strong className="text-slate-800">{selectedRecordForPayslip.paymentMethod}</strong>
+              <div className="text-[11px] text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+                <div>Payment Channel: <strong className="text-slate-800">{selectedRecordForPayslip.paymentMethod}</strong></div>
+                <div className="text-indigo-700 flex items-center space-x-1.5 pt-0.5">
+                  <UserCheck className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                  <span>Direct Report Confirmation: <strong>{selectedRecordForPayslip.directReportName || employees.find(e => e.id === selectedRecordForPayslip.employeeId)?.directReportName || 'Direct report verified'}</strong> attached for payout verification.</span>
+                </div>
               </div>
 
             </div>
@@ -331,12 +346,30 @@ export const PayrollTab: React.FC = () => {
                 <span>Print Payslip</span>
               </button>
 
-              <button
-                onClick={() => setSelectedRecordForPayslip(null)}
-                className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-              >
-                Close
-              </button>
+              <div className="flex items-center space-x-2">
+                {activeRole === 'admin' && selectedRecordForPayslip.status !== 'paid' && (
+                  <button
+                    onClick={async () => {
+                      await updatePayrollStatus(selectedRecordForPayslip.id, 'paid');
+                      setSelectedRecordForPayslip({
+                        ...selectedRecordForPayslip,
+                        status: 'paid',
+                        paidAt: new Date().toISOString().split('T')[0],
+                      });
+                    }}
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs transition-colors"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span>Confirm & Disburse</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setSelectedRecordForPayslip(null)}
+                  className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </div>
 
           </div>

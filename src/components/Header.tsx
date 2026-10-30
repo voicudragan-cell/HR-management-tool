@@ -17,10 +17,14 @@ import {
   Layers,
   Sparkles,
   Menu,
-  X
+  X,
+  Edit2,
+  UserPlus
 } from 'lucide-react';
 import { useHR } from '../context/HRContext';
 import { UserRole } from '../types/hr';
+import { EditEmployeeModal } from './EditEmployeeModal';
+import { AddEmployeeModal } from './AddEmployeeModal';
 
 interface HeaderProps {
   activeTab: string;
@@ -49,6 +53,8 @@ export const Header: React.FC<HeaderProps> = ({
 
   const [isPersonaMenuOpen, setIsPersonaMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -172,12 +178,38 @@ export const Header: React.FC<HeaderProps> = ({
                           Quick Switch
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-[11px] text-slate-500 mt-0.5 mb-2.5">
                         Test and verify role-based access control (Admin, Manager, Employee).
                       </p>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setIsAddModalOpen(true);
+                            setIsPersonaMenuOpen(false);
+                          }}
+                          className="flex-1 flex items-center justify-center space-x-1.5 py-1.5 px-2.5 rounded-lg text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-xs"
+                          title="Add a new employee to roster and switch to them"
+                        >
+                          <UserPlus className="h-3.5 w-3.5" />
+                          <span>+ Add Employee</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setIsEditModalOpen(true);
+                            setIsPersonaMenuOpen(false);
+                          }}
+                          className="flex-1 flex items-center justify-center space-x-1.5 py-1.5 px-2.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors"
+                          title="Edit active profile details"
+                        >
+                          <Edit2 className="h-3.5 w-3.5 text-slate-500" />
+                          <span>Edit Active</span>
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="max-h-72 overflow-y-auto space-y-1">
+                    <div className="max-h-64 overflow-y-auto space-y-1">
                       {allProfiles.map((p) => {
                         const isSelected = p.id === activeProfile.id;
                         return (
@@ -215,6 +247,18 @@ export const Header: React.FC<HeaderProps> = ({
                           </button>
                         );
                       })}
+
+                      {/* Add Employee Row in List */}
+                      <button
+                        onClick={() => {
+                          setIsAddModalOpen(true);
+                          setIsPersonaMenuOpen(false);
+                        }}
+                        className="w-full flex items-center justify-center space-x-2 p-2 mt-1 rounded-lg border border-dashed border-indigo-300 bg-indigo-50/50 hover:bg-indigo-50 text-indigo-700 text-xs font-semibold transition-all group"
+                      >
+                        <UserPlus className="h-3.5 w-3.5 text-indigo-600 group-hover:scale-110 transition-transform" />
+                        <span>+ Add New Persona / Employee</span>
+                      </button>
                     </div>
 
                     {/* Google Auth Option */}
@@ -321,6 +365,19 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
       </div>
+
+      {/* Edit Profile Modal */}
+      <EditEmployeeModal
+        employee={activeProfile}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
+
+      {/* Add Employee Modal */}
+      <AddEmployeeModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+      />
     </header>
   );
 };

@@ -360,41 +360,49 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             </div>
 
             <div className="space-y-3">
-              {employees.filter(e => e.status === 'onboarding' || e.status === 'probation').map(hire => {
-                const empTasks = onboardingTasks.filter(t => t.employeeId === hire.id);
-                const completedTasks = empTasks.filter(t => t.status === 'completed').length;
-                const progressPct = empTasks.length > 0 ? Math.round((completedTasks / empTasks.length) * 100) : 0;
+              {employees.filter(e => e.status === 'onboarding' || e.status === 'probation').length === 0 ? (
+                <div className="py-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  <UserCheck className="h-6 w-6 text-slate-300 mx-auto mb-1.5" />
+                  <p className="text-xs font-semibold text-slate-700">No active new hire onboarding in progress</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Click Onboard New Hire in Onboarding Hub to initialize your first team member.</p>
+                </div>
+              ) : (
+                employees.filter(e => e.status === 'onboarding' || e.status === 'probation').map(hire => {
+                  const empTasks = onboardingTasks.filter(t => t.employeeId === hire.id);
+                  const completedTasks = empTasks.filter(t => t.status === 'completed').length;
+                  const progressPct = empTasks.length > 0 ? Math.round((completedTasks / empTasks.length) * 100) : 0;
 
-                return (
-                  <div key={hire.id} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/40">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2.5">
-                        <img
-                          src={hire.avatarUrl}
-                          alt={hire.name}
-                          className="h-8 w-8 rounded-full object-cover"
-                        />
-                        <div>
-                          <span className="text-xs font-bold text-slate-900">{hire.name}</span>
-                          <span className="text-[11px] text-slate-500 block">
-                            {hire.jobTitle} &bull; {hire.department}
-                          </span>
+                  return (
+                    <div key={hire.id} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/40">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2.5">
+                          <img
+                            src={hire.avatarUrl}
+                            alt={hire.name}
+                            className="h-8 w-8 rounded-full object-cover"
+                          />
+                          <div>
+                            <span className="text-xs font-bold text-slate-900">{hire.name}</span>
+                            <span className="text-[11px] text-slate-500 block">
+                              {hire.jobTitle} &bull; {hire.department}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs font-mono font-bold text-slate-900">{progressPct}%</span>
+                          <span className="text-[10px] text-slate-400 block">{completedTasks}/{empTasks.length} Milestones</span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-xs font-mono font-bold text-slate-900">{progressPct}%</span>
-                        <span className="text-[10px] text-slate-400 block">{completedTasks}/{empTasks.length} Milestones</span>
+                      <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${progressPct}%` }}
+                        />
                       </div>
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${progressPct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 

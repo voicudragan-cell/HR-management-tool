@@ -13,6 +13,7 @@ import {
   Send,
   Building,
   Check,
+  UserCheck,
   X
 } from 'lucide-react';
 import { useHR } from '../context/HRContext';
@@ -52,6 +53,7 @@ export const MobilityTab: React.FC = () => {
     await nominatePromotion({
       employeeId: selectedCandidate.id,
       employeeName: selectedCandidate.name,
+      directReportName: selectedCandidate.directReportName || '',
       currentTitle: selectedCandidate.jobTitle,
       proposedTitle: nominateForm.proposedTitle,
       currentDepartment: selectedCandidate.department,
@@ -229,6 +231,11 @@ export const MobilityTab: React.FC = () => {
                     </div>
                   </div>
 
+                  <div className="flex items-center space-x-1.5 text-xs text-indigo-900 bg-indigo-50/70 px-2.5 py-1.5 rounded-lg border border-indigo-100 mb-3">
+                    <UserCheck className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                    <span>Direct Report Attached: <strong className="font-semibold text-indigo-950">{rec.directReportName || employees.find(e => e.id === rec.employeeId)?.directReportName || 'None designated in dossier'}</strong></span>
+                  </div>
+
                   <p className="text-xs text-slate-600 leading-relaxed italic mb-3">
                     "{rec.justification}"
                   </p>
@@ -391,6 +398,19 @@ export const MobilityTab: React.FC = () => {
                     </option>
                   ))}
                 </select>
+
+                {/* Auto-attached Direct Report indicator */}
+                {(() => {
+                  const candidate = employees.find(e => e.id === nominateForm.employeeId);
+                  return (
+                    <div className="mt-1.5 p-2 rounded-lg bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 flex items-center space-x-1.5">
+                      <UserCheck className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                      <span>
+                        Direct Report (Auto-attached): <strong>{candidate?.directReportName || 'None designated in dossier'}</strong>
+                      </span>
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
